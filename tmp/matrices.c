@@ -186,12 +186,51 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (mode == 0) {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glTranslatef(0.8, 0.0, 0.0);
+
+        glPushMatrix();
+
+            glTranslatef(0.0, 0.5, 0.0);
+            glScalef(0.2, 0.2, 1.0);
+
+            glBegin(GL_TRIANGLES);
+                glVertex2f(-0.5, -0.5);
+                glVertex2f(-0.5, 0.5);
+                glVertex2f(0.5, 0.5);
+                glVertex2f(0.5, 0.5);
+                glVertex2f(-0.5, -0.5);
+                glVertex2f(0.5, -0.5);
+            glEnd();
+
+        glPopMatrix();
+
+        glPushMatrix();
+
+            glTranslatef(0.0, -0.5, 0.0);
+            glScalef(0.2, 0.2, 1.0);
+
+            glBegin(GL_TRIANGLES);
+                glVertex2f(-0.5, -0.5);
+                glVertex2f(-0.5, 0.5);
+                glVertex2f(0.5, 0.5);
+                glVertex2f(0.5, 0.5);
+                glVertex2f(-0.5, -0.5);
+                glVertex2f(0.5, -0.5);
+            glEnd();
+
+        glPopMatrix();
+
+        /*if (mode == 0) {
             drawPrimitives(primitives);
         }
         else if (mode == 1) {
             drawColorSelectionView();
-        }
+        }*/
+
+        glFlush();
 
         /* Boucle traitant les evenements */
         SDL_Event e;
