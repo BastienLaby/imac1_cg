@@ -22,6 +22,10 @@ typedef struct Point {
 } Point, *PointList;
 
 Point* allocPoint(float x, float y, unsigned char r, unsigned char g, unsigned char b) {
+    /*
+    On alloue un espace mémoire suffisant pour pouvoir stocker un point
+    Attention : la fonction malloc() renvoie un void* qu'il faut impérativement caster en Point*.
+    */
     Point* point = (Point*) malloc(sizeof(Point));
     if (!point) {
         return NULL;
@@ -71,6 +75,10 @@ typedef struct Primitive{
 } Primitive, *PrimitiveList;
 
 Primitive* allocPrimitive(GLenum primitiveType) {
+    /*
+    On alloue un espace mémoire suffisant pour pouvoir stocker une primitive
+    Attention : la fonction malloc() renvoie un void* qu'il faut impérativement caster en Primitive*.
+    */
     Primitive* primitive = (Primitive*) malloc(sizeof(Primitive));
     if (!primitive) {
         return NULL;
@@ -117,7 +125,6 @@ void resizeViewport() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(-1., 1., -1., 1.);
-    glClear(GL_COLOR_BUFFER_BIT);
     SDL_SetVideoMode(WINDOW_WIDTH, WINDOW_HEIGHT, BIT_PER_PIXEL, SDL_OPENGL | SDL_RESIZABLE);
 }
 
@@ -135,9 +142,9 @@ static const unsigned char COLORS[] = {
 
 static const unsigned int NB_COLORS = sizeof(COLORS) / (3 * sizeof(unsigned char));
 
-void drawColorSelectionView() {
+void drawColorPalette() {
     int i;
-    GLfloat dx = 2.f / NB_COLORS;
+    float dx = 2.f / NB_COLORS; // dx = "delta x"
     glBegin(GL_QUADS);
     for(i = 0; i < NB_COLORS; ++i) {
         glColor3ubv(COLORS + i * 3);
@@ -167,16 +174,18 @@ int main(int argc, char** argv) {
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    /* On créé une première primitive par défaut */
     PrimitiveList primitives = NULL;
     Primitive* prim = allocPrimitive(GL_POINTS);
     PrimitiveList lastPrim = prim;
     addPrimitive(prim, &primitives);
 
-    /* Boucle d'affichage */
     int loop = 1;
-    int mode = 0;
-    unsigned int currentColor = 0; // color index
+    int mode = 0; // le mode d'affichage. 0 = le dessin, 1 = la palette
+    unsigned int currentColor = 0; // l'index de la couleur courante dans le tableau COLORS
+    GLenum currentPrimitiveType = GL_POINTS;
 
+    /* Boucle d'affichage */
     while(loop) {
 
         /* Récupération du temps au début de la boucle */
@@ -184,13 +193,13 @@ int main(int argc, char** argv) {
         
         /* Code de dessin */
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT); // Toujours commencer par clear le buffer
 
         if (mode == 0) {
-            drawPrimitives(primitives);
+            drawPrimitives(primitives); // On dessine la liste de primitives
         }
         else if (mode == 1) {
-            drawColorSelectionView();
+            drawColorPalette();
         }
 
         /* Boucle traitant les evenements */
@@ -209,14 +218,18 @@ int main(int argc, char** argv) {
                 /* Clic souris */
                 case SDL_MOUSEBUTTONUP:
                     if (mode == 1) {
+                        /* On retrouve automatiquement l'index de la couleur cliquée en connaissant la taille de notre tableau */
                         currentColor = e.button.x * NB_COLORS / WINDOW_WIDTH;
                     }
                     else if (mode == 0) {
+                        /* Transformation des coordonnées du clic souris en coordonnées OpenGL */
                         float x = -1 + 2. * e.button.x / WINDOW_WIDTH;
                         float y = -(-1 + 2. * e.button.y / WINDOW_HEIGHT);
+                        /* On retrouve la couleur courante grace à son index */
                         unsigned int r = COLORS[currentColor * 3];
                         unsigned int g = COLORS[currentColor * 3 + 1];
                         unsigned int b = COLORS[currentColor * 3 + 2];
+                        /* On ajoute un nouveau point à la liste de la primitive courante */
                         addPointToList(allocPoint(x, y, r, g, b), &lastPrim->points);
                     }
                     break;
@@ -230,6 +243,9 @@ int main(int argc, char** argv) {
                         mode = 1;
                     }
 
+                    int newPrimitivePressed = 0;
+                    GLenum newPrimitiveType;
+
                     switch(e.key.keysym.sym) {
 
                         case SDLK_q:
@@ -240,25 +256,35 @@ int main(int argc, char** argv) {
                             break;
 
                         case SDLK_p:
-                            prim = allocPrimitive(GL_POINTS);
-                            lastPrim = prim;
-                            addPrimitive(prim, &primitives);
+                            newPrimitivePressed = 1;
+                            newPrimitiveType = GL_POINTS;
                             break;
 
                         case SDLK_l:
-                            prim = allocPrimitive(GL_LINES);
-                            lastPrim = prim;
-                            addPrimitive(prim, &primitives);
+                            newPrimitivePressed = 1;
+                            newPrimitiveType = GL_LINES;
                             break;
 
                         case SDLK_t:
-                            prim = allocPrimitive(GL_TRIANGLES);
-                            lastPrim = prim;
-                            addPrimitive(prim, &primitives);
+                            newPrimitivePressed = 1;
+                            newPrimitiveType = GL_TRIANGLES;
+                            break;
+                        
+                        case SDLK_c:
+                            /* Touche pour effacer le dessin */
+                            deletePrimitive(&primitives); // on supprime les primitives actuelles
+                            addPrimitive(allocPrimitive(currentPrimitiveType), &primitives); // on réinitialise à la primitive courante
                             break;
 
                         default:
                             break;
+                    }
+
+                    if (newPrimitivePressed && currentPrimitiveType != newPrimitiveType) {
+                        prim = allocPrimitive(newPrimitiveType);
+                        lastPrim = prim;
+                        addPrimitive(prim, &primitives);
+                        currentPrimitiveType = newPrimitiveType;
                     }
 
                     break;
