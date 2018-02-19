@@ -30,7 +30,7 @@ unsigned int CIRCLE_SUBDIVISIONS = 100;
 float PI = 3.14159265359;
 
 void drawCircle(int full) {
-    float deltaAngle = (360.0 / CIRCLE_SUBDIVISIONS) * 2.0 * PI / 360.0;
+    float deltaAngle = CIRCLE_SUBDIVISIONS) * 2.0 * PI;
     if (full == 0) {
         glBegin(GL_LINE_LOOP);
     }
