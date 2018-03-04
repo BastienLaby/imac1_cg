@@ -1,11 +1,11 @@
 CC       =  gcc
 CFLAGS   = -Wall -O2 -g
-LIB      = -lSDL -lGLU -lGL -lm  
+LIB      = -lSDL -lGLU -lGL -lm -lSDL_image
 INCLUDES = 
 
-OBJ      = minimal.o 
+OBJ      = ex0203.o 
 RM       = rm -f
-BIN      = minimal
+BIN      = ex0203
 DIRNAME  = $(shell basename $$PWD)
 BACKUP   = $(shell date +`basename $$PWD`-%m.%d.%H.%M.tgz)
 STDNAME  = $(DIRNAME).tgz
@@ -18,8 +18,8 @@ $(BIN) : $(OBJ)
 	@echo "                 to execute type: ./$(BIN) &"
 	@echo "--------------------------------------------------------------"
 
-minimal.o : minimal.c
-	@echo "compile minimal"
+ex0203.o : ex0203.c
+	@echo "compile ex0203"
 	$(CC) $(CFLAGS) -c $<  
 	@echo "done..."
 
