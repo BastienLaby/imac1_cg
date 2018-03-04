@@ -263,6 +263,7 @@ int main(int argc, char** argv) {
                         float normU = sqrt(Ux * Ux + Uy * Uy);
                         float normV = sqrt(Vx * Vx + Vy * Vy);
 
+                        // Si on a survolé l'origine du cube, on stop net car la suite entrainerait des divisions par 0
                         if (normU * normV == 0) {
                             continue;
                         }
@@ -283,10 +284,6 @@ int main(int argc, char** argv) {
                         if (Ux * Vy - Uy * Vx < 0.0) {
                             angle = - angle;
                         }
-
-                        printf("angle %f, rotateAngle %f, cosDelta %f, delta %f, normU %f, normV %f\n", angle, rotateAngle, cosDelta, delta, normU, normV);
-
-                        //printf("angle %f\n", angle);
 
                         // On ajoute cette valeur d'angle à la valeur globale de l'angle
                         rotateAngle += angle;
