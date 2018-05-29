@@ -17,7 +17,15 @@ Ray createRay(Point3D origin, Vector3D direction) {
 Scene createScene() {
     Scene scene;
     scene.sphereCount = 0;
+    scene.lightCount = 0;
     return scene;
+}
+
+Light createLight(Point3D position, Color3f color) {
+    Light light;
+    light.position = position;
+    light.color = color;
+    return light;
 }
 
 Point3D getPointAtParameter(Ray ray, float t) {
@@ -26,11 +34,21 @@ Point3D getPointAtParameter(Ray ray, float t) {
 
 void addSphereToScene(Scene* scene, Sphere sphere) {
     if (scene->sphereCount >= 10) {
-        printf("Scene sphere list is empty\n");
+        printf("Scene sphere list is full\n");
     }
     else {
         scene->spheres[scene->sphereCount] = sphere;
         scene->sphereCount += 1;
+    }
+}
+
+void addLightToScene(Scene* scene, Light light) {
+    if (scene->lightCount >= 10) {
+        printf("Scene light list is full\n");
+    }
+    else {
+        scene->lights[scene->lightCount] = light;
+        scene->lightCount += 1;
     }
 }
 
@@ -77,6 +95,12 @@ int intersectsSphere(Sphere sphere, Ray ray, Intersection* intersection) {
         }
         intersection->position = getPointAtParameter(ray, t);
         intersection->color = sphere.color;
+        if (distance(ray.origin, sphere.center) < sphere.radius) {
+            intersection->normal = normalize(createVectorFromPoints(intersection->position, sphere.center));
+        }
+        else {
+            intersection->normal = normalize(createVectorFromPoints(sphere.center, intersection->position));
+        }
         return 1;
     }
     return 0;
@@ -92,6 +116,7 @@ int throwRayThroughScene(Scene scene, Ray ray, Intersection* intersection) {
             if (hasAlreadyIntersected == 0) {
                 intersection->position = newIntersection.position;
                 intersection->color = newIntersection.color;
+                intersection->normal = newIntersection.normal;
                 hasAlreadyIntersected = 1;
             }
             else {
@@ -100,6 +125,7 @@ int throwRayThroughScene(Scene scene, Ray ray, Intersection* intersection) {
                 if (newDistance < currentDistance) {
                     intersection->position = newIntersection.position;
                     intersection->color = newIntersection.color;
+                    intersection->normal = newIntersection.normal;
                 }
             }
         }
@@ -116,6 +142,33 @@ void simpleRaytracing(Scene scene, SDL_Surface* framebuffer) {
             Ray r = createRay(createPoint(0, 0, 0), createVectorXYZ(x, y, -1));
             if (throwRayThroughScene(scene, r, &intersection)) {
                 PutPixel(framebuffer, i, j, SDL_MapRGB(framebuffer->format, intersection.color.r * 255.0, intersection.color.g * 255.0, intersection.color.b * 255.0));
+            }
+        }
+    }
+}
+
+void lambertRaytracing(Scene scene, SDL_Surface* framebuffer) {
+
+    Intersection intersection;
+    for (int i = 0; i < framebuffer->w; i++) {
+        float x = -1.0 + 2.0 * (i / (float)(framebuffer->w - 1));
+        for(int j = 0; j < framebuffer->h; j++) {
+            float y = 1.0 - 2.0 * (j / (float)(framebuffer->h - 1));
+            Ray r = createRay(createPoint(0, 0, 0), createVectorXYZ(x, y, -1));
+            if (throwRayThroughScene(scene, r, &intersection)) {
+
+                Color3f pixelColor = createColor(0, 0, 0);
+
+                for (int k = 0; k < scene.lightCount; k++) {
+                    Vector3D IL = createVectorFromPoints(intersection.position, scene.lights[k].position);
+                    float NdotL = dot(intersection.normal, normalize(IL));
+                    Color3f lightColor = multColor(multColors(intersection.color, scene.lights[k].color), NdotL / ((norm(IL) * norm(IL))));
+                    pixelColor = addColors(pixelColor, lightColor);
+                }
+
+                pixelColor = clampColor(pixelColor);
+
+                PutPixel(framebuffer, i, j, SDL_MapRGB(framebuffer->format, pixelColor.r * 255.0, pixelColor.g * 255.0, pixelColor.b * 255.0));
             }
         }
     }

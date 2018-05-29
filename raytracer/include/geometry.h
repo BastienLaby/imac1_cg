@@ -24,5 +24,6 @@ Vector3D divVector(Vector3D v, float a);
 float dot(Vector3D v1, Vector3D v2);
 float norm(Vector3D v);
 Vector3D normalize(Vector3D v);
+float distance(Point3D p1, Point3D p2);
 
 #endif

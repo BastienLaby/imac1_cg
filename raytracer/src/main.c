@@ -6,8 +6,8 @@
 #include "shape.h"
 #include "raytracer.h"
 
-static unsigned int WINDOW_WIDTH = 800;
-static unsigned int WINDOW_HEIGHT = 800;
+static unsigned int WINDOW_WIDTH = 600;
+static unsigned int WINDOW_HEIGHT = 600;
 static const unsigned int BIT_PER_PIXEL = 32;
 
 int main(int argc, char** argv) {
@@ -35,11 +35,14 @@ int main(int argc, char** argv) {
     
     // Création de la scène
     Scene scene = createScene();
-    addSphereToScene(&scene, createSphere(createPoint(0.0, 0, -3), 1, createColor(1, 0, 0)));
-    addSphereToScene(&scene, createSphere(createPoint(0.3, 0, -2), 0.5, createColor(0, 1, 0)));
+    addSphereToScene(&scene, createSphere(createPoint(0, 0, -5), 1.5, createColor(1, 0, 0)));
+    addSphereToScene(&scene, createSphere(createPoint(-1, 0, -3.5), 0.5, createColor(0, 1, 0)));
+    //addSphereToScene(&scene, createSphere(createPoint(0, 0, -1.5), 0.5, createColor(1, 1, 0)));
+    addLightToScene(&scene, createLight(createPoint(0, 0, 0), createColor(10, 10, 10)));
+
 
     // Appel au raytracing
-    simpleRaytracing(scene, framebuffer);
+    lambertRaytracing(scene, framebuffer);
 
     int loop = 1;
     while(loop) {
