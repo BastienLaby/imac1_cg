@@ -2,12 +2,12 @@
 #define SHAPE_H
 
 #include "geometry.h"
-#include "shading.h"
+#include "colors.h"
 
 typedef struct Sphere {
     Point3D center; // origin / center
     float radius;
-    Material material;
+    Color3f color;
 } Sphere;
 
 Sphere createSphere(Point3D center, float radius, Color3f color);
